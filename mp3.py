@@ -27,7 +27,7 @@ def send(sock: socket.socket, data: bytes):
     logger = miniproject3.logging.get_logger("mp3-sender")
     chunk_size = miniproject3.MAX_PACKET - 5
     pause = 0.1
-    offsets = range(0, len(data), miniproject3.MAX_PACKET)
+    offsets = range(0, len(data), chunk_size)
     sequence = '00000'  # set sequence to 0
     for chunk in [data[i:i + chunk_size] for i in offsets]:
         if sequence == '00000':
@@ -111,7 +111,8 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
                     # deliver            
                     logger.info("Received %d bytes", len(data))
                     dest.write(data[5:])
-                    num_bytes += len(data)                    
+                    num_bytes += len(data)
+                    dest.flush()                    
                     break
                 # has_seq1(): wait for the next packet
                 else:
