@@ -108,7 +108,11 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
                     # change state
                     print('change state to 1')
                     state = '00001'   # change state to 1
-                    break   # break to deliver
+                    # deliver            
+                    logger.info("Received %d bytes", len(data))
+                    dest.write(data[5:])
+                    num_bytes += len(data)                    
+                    break
                 # has_seq1(): wait for the next packet
                 else:
                     break
@@ -121,13 +125,13 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
                     # change state
                     print('change state to 0')
                     state = '00000'   # change state to 0
-                    break   # break deliver
+                    # deliver            
+                    logger.info("Received %d bytes", len(data))
+                    dest.write(data[5:])
+                    num_bytes += len(data)
+                    dest.flush()
+                    break
                 # has_seq0(): wait for the next packet
                 else:
                     break
-    # deliver            
-    logger.info("Received %d bytes", len(data))
-    dest.write(data[5:])
-    num_bytes += len(data)
-    dest.flush()
     return num_bytes
