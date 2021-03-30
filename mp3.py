@@ -23,18 +23,30 @@ def send(sock: socket.socket, data: bytes):
         data -- A bytes object, containing the data to send over the network.
     """
 
-    # Naive implementation where we chunk the data to be sent into
-    # packets as large as the network will allow, and then send them
-    # over the network, pausing half a second between sends to let the
-    # network "rest" :)
+    # rdt 2.0
     logger = miniproject3.logging.get_logger("mp3-sender")
     chunk_size = miniproject3.MAX_PACKET - 5
     pause = .1
     offsets = range(0, len(data), miniproject3.MAX_PACKET)
     for chunk in [data[i:i + chunk_size] for i in offsets]:
-        sock.send(b'00000' + chunk)
-        logger.info("Pausing for %f seconds", round(pause, 2))
-        time.sleep(pause)
+        while True:
+            # wait for call from above
+            sock.send(b'00000' + chunk)
+            logger.info("Pausing for %f seconds", round(pause, 2))
+            time.sleep(pause)
+            # Wait for NAC or ACK
+            ACK = sock.recv(1000).decode("utf-8")
+            # if (rdt_rcv(rcvpkt) && isACK(rcvpkt))
+            print(ACK)
+            if ACK == '00000':
+                # send the next chunk
+                break
+            # elif (rdt_rcv(rcvpkt) && isNAK(rcvpkt))
+            else:
+                # resend
+                pass
+        
+
 
 
 def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
@@ -50,10 +62,9 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
         The number of bytes written to the destination.
     """
     logger = miniproject3.logging.get_logger("mp3-receiver")
-    # Naive solution, where we continually read data off the socket
-    # until we don't receive any more data, and then return.
-    # You can do better than this!
+    # rdt 2.0
     num_bytes = 0
+    # Wait for call from below
     while True:
         data = sock.recv(miniproject3.MAX_PACKET)
         if not data:
@@ -61,5 +72,7 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
         logger.info("Received %d bytes", len(data))
         dest.write(data)
         num_bytes += len(data)
+        # send ACK
+        sock.send(b'00000')
         dest.flush()
     return num_bytes
