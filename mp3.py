@@ -23,7 +23,8 @@ def send(sock: socket.socket, data: bytes):
         data -- A bytes object, containing the data to send over the network.
     """
 
-    # rdt 2.1
+    # rdt 3.0 (with timeout)
+    timeout = 1 # set default timeout
     logger = miniproject3.logging.get_logger("mp3-sender")
     chunk_size = miniproject3.MAX_PACKET - 5
     pause = 0.1
@@ -33,18 +34,26 @@ def send(sock: socket.socket, data: bytes):
         if sequence == '00000':
             while True:
                 # wait for call 0 from above
-                # rdt_send(data)
+                # rdt_send(data) && start_timer()
                 sock.send(sequence.encode() + chunk)
                 logger.info("Pausing for %f seconds", round(pause, 2))
                 time.sleep(pause)
-                # Wait for NAC or ACK 0
-                ACK = sock.recv(1000).decode("utf-8")
+                # start_timer()
+                sock.settimeout(timeout)
+                # Wait for ACK 0
+                try:
+                    ACK = sock.recv(1000).decode("utf-8")
+                except:
+                    # if timeout, resend
+                    continue
                 print('Sender: ACK is %s' % ACK)
                 # if (rdt_rcv(rcvpkt) && isACK(rcvpkt))
                 if ACK == '00000':
                     # send the next chunk
                     sequence = '00001'
                     print('Sender: set SEQ = %s' % sequence)
+                    # stop_timer
+                    sock.settimeout(None)
                     break
                 # elif (rdt_rcv(rcvpkt) && isNAK(rcvpkt))
                 else:
@@ -58,14 +67,22 @@ def send(sock: socket.socket, data: bytes):
                 sock.send(sequence.encode() + chunk)
                 logger.info("Pausing for %f seconds", round(pause, 2))
                 time.sleep(pause)
-                # Wait for NAC or ACK 1
-                ACK = sock.recv(1000).decode("utf-8")
+                # start timer
+                sock.settimeout(timeout)
+                # Wait for ACK 1
+                try:
+                    ACK = sock.recv(1000).decode("utf-8")
+                except:
+                    # if timeout, resend
+                    continue
                 print('Sender: ACK is %s' % ACK)
                 # if (rdt_rcv(rcvpkt) && isACK(rcvpkt))
                 if ACK == '00001':
                     # send the next chunk
                     sequence = '00000'
                     print('Sender: set SEQ = %s' % sequence)
+                    # stop_timer
+                    sock.settimeout(None)
                     break
                 # elif (rdt_rcv(rcvpkt) && isNAK(rcvpkt))
                 else:
