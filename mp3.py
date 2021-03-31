@@ -31,11 +31,13 @@ def send(sock: socket.socket, data: bytes):
     offsets = range(0, len(data), chunk_size)
     sequence = '00000'  # set sequence to 0
     for chunk in [data[i:i + chunk_size] for i in offsets]:
+        # update timeout
         if sequence == '00000':
             while True:
                 # wait for call 0 from above
                 # rdt_send(data) && start_timer()
                 sock.send(sequence.encode() + chunk)
+                print('Sender: SEQ0')
                 logger.info("Pausing for %f seconds", round(pause, 2))
                 time.sleep(pause)
                 # start_timer()
@@ -66,6 +68,7 @@ def send(sock: socket.socket, data: bytes):
                 # wait for call 1 from above
                 # rdt_send(data)
                 sock.send(sequence.encode() + chunk)
+                print('Sender: SEQ1')
                 logger.info("Pausing for %f seconds", round(pause, 2))
                 time.sleep(pause)
                 # start timer
@@ -118,7 +121,7 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
         # get the sequence number
         sequence = data[0:5].decode()
         print('Receiver: SEQ = %s' % sequence) # show the sequence
-        sock.send(state.encode()) # ACK
+        sock.send(sequence.encode()) # ACK
         # state 0: wait for 0 from below
         if state == '00000':
             while True:                
@@ -133,8 +136,9 @@ def recv(sock: socket.socket, dest: io.BufferedIOBase) -> int:
                     num_bytes += len(data)
                     dest.flush()                    
                     break
-                # has_seq1(): wait for the next packet
+                # has_seq1(): duplicate
                 else:
+
                     break
         # state 1: wait for 1 from below
         # if state == '00001':
