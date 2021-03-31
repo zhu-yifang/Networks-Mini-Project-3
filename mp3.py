@@ -45,6 +45,7 @@ def send(sock: socket.socket, data: bytes):
                     ACK = sock.recv(1000).decode("utf-8")
                 except:
                     # if timeout, resend
+                    print('Sender: timeout0, resend')
                     continue
                 print('Sender: ACK is %s' % ACK)
                 # if (rdt_rcv(rcvpkt) && isACK(rcvpkt))
@@ -74,6 +75,7 @@ def send(sock: socket.socket, data: bytes):
                     ACK = sock.recv(1000).decode("utf-8")
                 except:
                     # if timeout, resend
+                    print('Sender: timeout1, resend')
                     continue
                 print('Sender: ACK is %s' % ACK)
                 # if (rdt_rcv(rcvpkt) && isACK(rcvpkt))
