@@ -13,6 +13,7 @@ import signal
 import logging
 import miniproject3.logging
 import miniproject3.utils
+from security import safe_command
 
 DESC = sys.modules[globals()['__name__']].__doc__
 PARSER = argparse.ArgumentParser(description=DESC)
@@ -73,7 +74,7 @@ for A_SIGNAL in (signal.SIGTERM, signal.SIGINT):
     signal.signal(A_SIGNAL, on_end)
 
 
-SERVER_PROCESS = subprocess.Popen(SERVER_ARGS)
+SERVER_PROCESS = safe_command.run(subprocess.Popen, SERVER_ARGS)
 LOGGER.info("Starting wire process: {}".format(SERVER_PROCESS.pid))
 time.sleep(1)
 
@@ -91,7 +92,7 @@ RECEIVING_ARGS = [PYTHON_BINARY, "receiver.py",
 if ARGS.verbose:
     RECEIVING_ARGS.append("-v")
 
-RECEIVING_PROCESS = subprocess.Popen(RECEIVING_ARGS)
+RECEIVING_PROCESS = safe_command.run(subprocess.Popen, RECEIVING_ARGS)
 LOGGER.info("Starting receiving process: {}".format(RECEIVING_PROCESS.pid))
 time.sleep(1)
 
@@ -107,7 +108,7 @@ INPUT_LEN, INPUT_HASH = miniproject3.utils.file_summary(INPUT_PATH)
 START_TIME = time.time()
 
 LOGGER.info("Starting sending process: {}".format(SERVER_PROCESS.pid))
-SENDING_RESULT = subprocess.run(SENDER_ARGS)
+SENDING_RESULT = safe_command.run(subprocess.run, SENDER_ARGS)
 
 END_TIME = time.time()
 
