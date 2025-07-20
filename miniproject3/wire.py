@@ -3,12 +3,12 @@ Implementation of an async based lossy wire, that simulates network
 conditions between two communicating sockets.
 """
 import asyncio
-import random
 import socket
 import binascii
 import hashlib
 import struct
 import miniproject3.logging
+import secrets
 
 
 def data_rep(data: bytes) -> str:
@@ -57,7 +57,7 @@ class CrummyWireProtocol(asyncio.DatagramProtocol):
 
         # Second, see if we should drop the packet.  If so, then we just
         # discard it as if nothing ever happened.
-        if self._loss > 0 and random.random() < self._loss:
+        if self._loss > 0 and secrets.SystemRandom().random() < self._loss:
             self._logger.debug(" !-> Dropping to simulate a lossy connection")
             return
 
